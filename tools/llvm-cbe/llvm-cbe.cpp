@@ -156,13 +156,11 @@ std::unique_ptr<tool_output_file> GetOutputStream(const char *TargetName,
 int main(int argc, char **argv) {
 
   try {
-    sys::PrintStackTraceOnErrorSignal();
     PrettyStackTraceProgram X(argc, argv);
 
     // Enable debug stream buffering.
     EnableDebugBuffering = true;
 
-    LLVMContext &Context = getGlobalContext();
     llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
 
     // Initialize targets first, so that --version shows registered targets.
@@ -182,13 +180,13 @@ int main(int argc, char **argv) {
     initializeCodeGen(*Registry);
     initializeLoopStrengthReducePass(*Registry);
     initializeLowerIntrinsicsPass(*Registry);
-    initializeUnreachableBlockElimPass(*Registry);
 
     // Register the target printer for --version.
     cl::AddExtraVersionPrinter(TargetRegistry::printRegisteredTargetsForVersion);
 
     cl::ParseCommandLineOptions(argc, argv, "llvm system compiler\n");
 
+    LLVMContext Context;
     return compileModule(Context);
   }
   catch(std::exception const& err) {
@@ -246,8 +244,9 @@ std::unique_ptr<TargetMachine> createMachine(const Target* TheTarget, Triple The
   Options.NoZerosInBSS = DontPlaceZerosInBSS;
   Options.GuaranteedTailCallOpt = EnableGuaranteedTailCallOpt;
   Options.StackAlignmentOverride = OverrideStackAlignment;
-  Options.PositionIndependentExecutable = EnablePIE;
-
+#if LLVM_VERSION_MAJOR > 3 || LLVM_VERSION_MINOR > 8
+  Optional<Reloc::Model> RelocModel;
+#endif
   std::unique_ptr<TargetMachine>
     target(TheTarget->createTargetMachine(TheTriple.getTriple(),
                                           MCPU, FeaturesStr, Options,

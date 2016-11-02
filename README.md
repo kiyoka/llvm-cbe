@@ -21,7 +21,7 @@ Moreover, the project in its current state needs a lot of cleaning, its merely c
 
 So my goal here is to have a codebase:
 - that has no bugs blocking the dscripten project.
-- that works with a recent version of LLVM (at the moment 3.8 vs JuliaComputing/llvm-cbe which requires LLVM 3.7)
+- that works with a recent version of LLVM (at the moment 3.9, vs JuliaComputing/llvm-cbe which requires LLVM 3.7)
 - that can be compiled out of the LLVM tree (as long as there's one llvm-config in the PATH).
 - that has a trustable suite of tests which directly feed llvm-cbe with deterministic LLVM bitcode (instead of relying on clang code generation, as JuliaComputing/llvm-cbe does).
 - that don't require compromises on code cleanliness.
@@ -30,7 +30,7 @@ So my goal here is to have a codebase:
 INSTALLATION INSTRUCTIONS
 =========================
 
-This version of the LLVM-CBE library works with LLVM 3.8. You will have to
+This version of the LLVM-CBE library works with LLVM 3.9. You will have to
 compile this version of LLVM before you try to use LLVM-CBE. This
 guide will walk you through the compilation and installation of both
 tools and show usage statements to verify that the LLVM-CBE library is
@@ -42,7 +42,7 @@ Mageia, Ubuntu, Debian), Mac OS X, and Windows (Mingw-w64).
 Step 1a: Installing LLVM manually
 =======================
 
-LLVM-CBE currently requires LLVM 3.8 to be installed somewhere on your system,
+LLVM-CBE currently requires LLVM 3.9 to be installed somewhere on your system,
 and that the corresponding "llvm-config" be in your PATH.
 (only LLVM is needed, not clang).
 
@@ -52,7 +52,7 @@ The first step is to compile LLVM on your machine:
 $ cd $HOME
 $ git clone https://github.com/llvm-mirror/llvm
 $ cd llvm
-$ git checkout release_38
+$ git checkout release_39
 $ ./configure
 $ make
 $ make install
@@ -61,18 +61,18 @@ $ make install
 At this point, you should have llvm-config in your path:
 ```
 $ llvm-config --version
-3.8.0svn
+3.9.1
 ```
 
 Step 1b: Install LLVM from repositories
 =======================
 
 Alternatively, a LLVM installed some other way can be used, e.g. installing the Debian packages.
-Be aware that some distributions will suffix the 'llvm-config' program with LLVM version, e.g 'llvm-config-3.8'.
+Be aware that some distributions will suffix the 'llvm-config' program with LLVM version, e.g 'llvm-config-3.9'.
 In this case, you will need to set the environment variable LLVM_CONFIG so the makefile knows which program to call.
 Example:
 ```
-$ export LLVM_CONFIG=llvm-config-3.8
+$ export LLVM_CONFIG=llvm-config-3.9
 ```
 
 Step 2: Compiling LLVM-CBE
