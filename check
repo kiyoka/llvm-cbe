@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function main
+{
+  make -j`nproc`
+  ./tests/run bin
+  echo OK
+}
+
+main
