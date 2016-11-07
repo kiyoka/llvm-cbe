@@ -3,7 +3,7 @@
 typedef struct
 {
   int a, b;
-  int[4] c;
+  int c[4];
 } S;
 
 int32_t getFirst(S*);

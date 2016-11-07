@@ -27,7 +27,7 @@ function main
   runTest compile_test attributes.ll attributes.cpp
   runTest execute_test byval_array.ll
   runTest execute_test floats.ll
-  #runTest execute_test flexible_arrays.ll
+  runTest execute_test flexible_arrays.ll
 }
 
 function runTest
