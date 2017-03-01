@@ -32,6 +32,14 @@ static void printLimitValue(IntegerType &Ty, bool isSigned, bool isMax,
     Out << "U" << type << (isMax ? "_MAX" : "0");
 }
 
+#ifndef NDEBUG
+static bool isSupportedIntegerSize(IntegerType &T) {
+  return T.getBitWidth() == 8 || T.getBitWidth() == 16 ||
+         T.getBitWidth() == 32 || T.getBitWidth() == 64 ||
+         T.getBitWidth() == 128;
+}
+#endif
+
 void CWriter::printIntrinsicDefinition(FunctionType *funT,
         unsigned Opcode, string OpName, raw_ostream &Out) {
   Type *retT = funT->getReturnType();
@@ -803,15 +811,6 @@ void CWriter::visitSelectInst(SelectInst &I) {
   SelectDeclTypes.insert(I.getType());
   assert(I.getCondition()->getType()->isVectorTy() == I.getType()->isVectorTy()); // TODO: might be scalarty == vectorty
 }
-
-#ifndef NDEBUG
-static bool isSupportedIntegerSize(IntegerType &T) {
-  return T.getBitWidth() == 8 || T.getBitWidth() == 16 ||
-         T.getBitWidth() == 32 || T.getBitWidth() == 64 ||
-         T.getBitWidth() == 128;
-}
-#endif
-
 
 void CWriter::visitCallInst(CallInst &I) {
   if (isa<InlineAsm>(I.getCalledValue()))
