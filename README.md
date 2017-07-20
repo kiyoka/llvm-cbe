@@ -32,7 +32,7 @@ The first step is to compile LLVM on your machine:
 $ cd $HOME
 $ git clone https://github.com/llvm-mirror/llvm
 $ cd llvm
-$ git checkout release_39
+$ git checkout release_40
 $ ./configure
 $ make
 $ make install
@@ -41,18 +41,18 @@ $ make install
 At this point, you should have llvm-config in your path:
 ```
 $ llvm-config --version
-3.9.1
+4.0.1
 ```
 
 Step 1b: Install LLVM from repositories
 =======================
 
 Alternatively, a LLVM installed some other way can be used, e.g. installing the Debian packages.
-Be aware that some distributions will suffix the 'llvm-config' program with LLVM version, e.g 'llvm-config-3.9'.
+Be aware that some distributions will suffix the 'llvm-config' program with LLVM version, e.g 'llvm-config-4.0'.
 In this case, you will need to set the environment variable LLVM_CONFIG so the makefile knows which program to call.
 Example:
 ```
-$ export LLVM_CONFIG=llvm-config-3.9
+$ export LLVM_CONFIG=llvm-config-4.0
 ```
 
 Step 2: Compiling LLVM-CBE
