@@ -1,4 +1,4 @@
-
+#include <set>
 #include "CTargetMachine.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/SmallString.h"
@@ -103,7 +103,7 @@ namespace CBackend {
       : FunctionPass(ID), Out(_Out), FileOut(o) {
     }
 
-    virtual const char *getPassName() const { return "C backend"; }
+    virtual StringRef getPassName() const { return "C backend"; }
 
     void getAnalysisUsage(AnalysisUsage &AU) const {
       AU.addRequired<LoopInfoWrapperPass>();

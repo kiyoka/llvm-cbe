@@ -1292,7 +1292,7 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
   VectorType *LastIndexIsVector = 0;
   {
     for (gep_type_iterator TmpI = I; TmpI != E; ++TmpI)
-      LastIndexIsVector = dyn_cast<VectorType>(*TmpI);
+      LastIndexIsVector = dyn_cast<VectorType>(TmpI.getIndexedType());
   }
 
   Out << "(";
@@ -1322,7 +1322,7 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
     // exposed, like a global, avoid emitting (&foo)[0], just emit foo instead.
     if (isAddressExposed(Ptr)) {
       writeOperandInternal(Ptr);
-    } else if (I != E && (*I)->isStructTy()) {
+    } else if (I != E && I.getIndexedType()->isStructTy()) {
       // If we didn't already emit the first operand, see if we can print it as
       // P->f instead of "P[0].f"
       writeOperand(Ptr);
@@ -1338,13 +1338,13 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
 
   for (; I != E; ++I) {
     assert(I.getOperand()->getType()->isIntegerTy()); // TODO: indexing a Vector with a Vector is valid, but we don't support it here
-    if ((*I)->isStructTy()) {
+    if (I.getIndexedType()->isStructTy()) {
       Out << ".field" << cast<ConstantInt>(I.getOperand())->getZExtValue();
-    } else if ((*I)->isArrayTy()) {
+    } else if (I.getIndexedType()->isArrayTy()) {
       Out << ".array[";
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';
-    } else if (!(*I)->isVectorTy()) {
+    } else if (!I.getIndexedType()->isVectorTy()) {
       Out << '[';
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';

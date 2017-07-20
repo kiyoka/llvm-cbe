@@ -323,6 +323,7 @@ int compileModule(LLVMContext &Context) {
     AnalysisID StartAfterID = 0;
     AnalysisID StopAfterID = 0;
     const PassRegistry *PR = PassRegistry::getPassRegistry();
+    /*
     if (!StartAfter.empty()) {
       const PassInfo *PI = PR->getPassInfo(StartAfter);
       if (!PI)
@@ -335,7 +336,7 @@ int compileModule(LLVMContext &Context) {
         throw std::runtime_error("stop-after pass is not registered");
       StopAfterID = PI->getTypeInfo();
     }
-
+    */
     // Ask the target to add backend passes as necessary.
     if (Machine->addPassesToEmitFile(PM, Out->os(), FileType, NoVerify,
                                    StartAfterID, StopAfterID))

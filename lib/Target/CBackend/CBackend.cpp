@@ -618,10 +618,10 @@ bool CWriter::printConstantString(Constant *C, enum OperandContext Context) {
 // TODO copied from CppBackend, new code should use raw_ostream
 static inline string ftostr(const APFloat& V) {
   string Buf;
-  if (&V.getSemantics() == &APFloat::IEEEdouble) {
+  if (&V.getSemantics() == &APFloat::IEEEdouble()) {
     raw_string_ostream(Buf) << V.convertToDouble();
     return Buf;
-  } else if (&V.getSemantics() == &APFloat::IEEEsingle) {
+  } else if (&V.getSemantics() == &APFloat::IEEEsingle()) {
     raw_string_ostream(Buf) << (double)V.convertToFloat();
     return Buf;
   }
@@ -636,7 +636,7 @@ static bool isFPCSafeToPrint(const ConstantFP *CFP) {
     return false;
   APFloat APF = APFloat(CFP->getValueAPF());  // copy
   if (CFP->getType() == Type::getFloatTy(CFP->getContext()))
-    APF.convert(APFloat::IEEEdouble, APFloat::rmNearestTiesToEven, &ignored);
+    APF.convert(APFloat::IEEEdouble(), APFloat::rmNearestTiesToEven, &ignored);
 #if HAVE_PRINTF_A && ENABLE_CBE_PRINTF_A
   char Buffer[100];
   sprintf(Buffer, "%a", APF.convertToDouble());
@@ -961,7 +961,7 @@ void CWriter::printConstant(Constant *CPV, enum OperandContext Context) {
         // useful.
         APFloat Tmp = FPC->getValueAPF();
         bool LosesInfo;
-        Tmp.convert(APFloat::IEEEdouble, APFloat::rmTowardZero, &LosesInfo);
+        Tmp.convert(APFloat::IEEEdouble(), APFloat::rmTowardZero, &LosesInfo);
         V = Tmp.convertToDouble();
       }
 
@@ -2982,7 +2982,8 @@ void CWriter::printBasicBlock(BasicBlock *BB) {
 bool CTargetMachine::addPassesToEmitFile(
     PassManagerBase &PM, raw_pwrite_stream &Out, CodeGenFileType FileType,
     bool DisableVerify, AnalysisID StartBefore,
-    AnalysisID StartAfter, AnalysisID StopAfter,
+    AnalysisID StartAfter, AnalysisID StopBefore,
+    AnalysisID StopAfter,
     MachineFunctionInitializer *MFInitializer) {
 
   if (FileType != TargetMachine::CGFT_AssemblyFile) return true;
