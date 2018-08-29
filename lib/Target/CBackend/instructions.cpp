@@ -1340,11 +1340,11 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
     assert(I.getOperand()->getType()->isIntegerTy()); // TODO: indexing a Vector with a Vector is valid, but we don't support it here
     if (I.getIndexedType()->isStructTy()) {
       Out << ".field" << cast<ConstantInt>(I.getOperand())->getZExtValue();
-    } else if (I.getIndexedType()->isArrayTy()) {
+    } else if (I.isBoundedSequential()) {
       Out << ".array[";
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';
-    } else if (!I.getIndexedType()->isVectorTy()) {
+    } else if (!I.isSequential()) {
       Out << '[';
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';
