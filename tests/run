@@ -16,18 +16,20 @@ mkdir -p $tmpDir
 
 function main
 {
-  runTest compile_test cyclic_structures.ll
-  runTest compile_test string_literal.ll
-  runTest compile_test string_literal_2.ll
-  runTest compile_test struct_initializers.ll
-  runTest execute_test function.ll
-  runTest compile_test function_arguments.ll
-  runTest compile_test cyclic_pointers.ll
-  runTest compile_test byval_struct.ll
-  runTest compile_test attributes.ll attributes.cpp
-  runTest execute_test byval_array.ll
-  runTest execute_test floats.ll
-  runTest execute_test flexible_arrays.ll
+  runTest compile_ll_test cyclic_structures.ll
+  runTest compile_ll_test string_literal.ll
+  runTest compile_ll_test string_literal_2.ll
+  runTest compile_ll_test struct_initializers.ll
+  runTest execute_test    function.ll
+  runTest compile_ll_test function_arguments.ll
+  runTest compile_ll_test cyclic_pointers.ll
+  runTest compile_ll_test byval_struct.ll
+  runTest compile_ll_test attributes.ll
+  runTest execute_test    byval_array.ll
+  runTest execute_test    floats.ll
+  runTest execute_test    flexible_arrays.ll
+  runTest execute_c_test  helloworld.cpp
+  runTest execute_c_test  helloworld2.cpp
 }
 
 function runTest
@@ -39,7 +41,7 @@ function runTest
   fi
 }
 
-function compile_test
+function compile_ll_test
 {
   if ! $BIN/llvm-cbe $scriptDir/$1 -o=$tmpDir/output.c ; then
     echo "C generation failed"
@@ -74,5 +76,30 @@ function execute_test
   fi
 }
 
-main "$@"
+function execute_c_test
+{
+  name=$(basename $1 .cpp)
+  
+  if ! clang-4.0 -O0 -S -emit-llvm $scriptDir/$name.cpp -o $tmpDir/output.ll ; then
+    echo "The resulting program isn't compilable" >&2
+    return 1
+  fi
 
+  if ! $BIN/llvm-cbe $tmpDir/output.ll ; then
+    echo "C generation failed"
+    return 1
+  fi
+
+  if ! gcc -w -O0 -lstdc++ $tmpDir/output.cbe.c -o $tmpDir/output.exe ; then
+    echo "The resulting program isn't compilable" >&2
+    cat $tmpDir/output.cbe.c | sed "s/^/  /" | grep -n "" | sed "s/^/> /"
+    return 1
+  fi
+
+  if ! $tmpDir/output.exe ; then
+    echo "The resulting program returns an error" >&2
+    return 1
+  fi
+}
+
+main "$@"
