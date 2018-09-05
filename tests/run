@@ -30,6 +30,8 @@ function main
   runTest execute_test    flexible_arrays.ll
   runTest execute_c_test  helloworld.cpp
   runTest execute_c_test  helloworld2.cpp
+  runTest execute_c_test  argv.cpp
+  runTest execute_c_test  argv.cpp  arg1
 }
 
 function runTest
@@ -96,9 +98,17 @@ function execute_c_test
     return 1
   fi
 
-  if ! $tmpDir/output.exe ; then
-    echo "The resulting program returns an error" >&2
-    return 1
+  if [ $# -eq 1 ] ; then
+    if ! $tmpDir/output.exe  ; then
+      echo "The resulting program returns an error" >&2
+      return 1
+    fi
+  fi
+  if [ $# -eq 2 ] ; then
+    if ! $tmpDir/output.exe $2; then
+      echo "The resulting program returns an error" >&2
+      return 1
+    fi
   fi
 }
 

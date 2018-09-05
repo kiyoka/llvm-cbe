@@ -97,6 +97,9 @@ namespace CBackend {
     // will only be expanded on first use
     std::vector<Function*> prototypesToGen;
 
+    bool UseDebugPrint = false;
+    int IndentLevel = 0;
+
   public:
     static char ID;
     explicit CWriter(raw_pwrite_stream &o)
@@ -197,6 +200,8 @@ namespace CBackend {
     void printConstantVector(ConstantVector *CV, enum OperandContext Context);
     void printConstantDataSequential(ConstantDataSequential *CDS, enum OperandContext Context);
     bool printConstantString(Constant *C, enum OperandContext Context);
+    void printIndent(raw_ostream &Out);
+    void printPrettyPrint(raw_ostream &Out, const std::string &code, const std::string &comment);
 
     bool isEmptyType(Type *Ty) const;
     bool isAddressExposed(Value *V) const;

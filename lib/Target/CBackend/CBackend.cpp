@@ -605,6 +605,83 @@ bool CWriter::printConstantString(Constant *C, enum OperandContext Context) {
   return true;
 }
 
+void CWriter::printIndent(raw_ostream &Out)
+{
+  int n = IndentLevel;
+  if(IndentLevel < 0) {
+    n = 0;
+  }
+  for(int i = 0 ; i < n ; i++ ) {
+    Out << "  ";
+  }
+}
+  
+// printPrettyPrint and /* comment */ for debugging
+//   printPrettyPrint(Out, "((", "begin1");
+//   printPrettyPrint(Out, "value", "value1");
+//   printPrettyPrint(Out, "))", "end1");
+// output:
+//   /* begin1 */
+//   (
+//    (
+//     value /* value1 */
+//    )
+//   )
+//   /* end1 */
+//
+void CWriter::printPrettyPrint(raw_ostream &Out, const std::string &code, const std::string &comment)
+{
+  bool bOpen = false;
+  bool bClose = false;
+  std::string tmpCode = code.c_str();
+  if (UseDebugPrint) {
+    if(tmpCode.find("(") != std::string::npos) {
+      bOpen = true;
+    }
+    else if(tmpCode.find(")") != std::string::npos) {
+      bClose = true;
+    }
+
+    if(bOpen) {
+      Out << "/* ";
+      Out << comment;
+      Out << " */\n";
+      printIndent(Out);
+    }
+
+    while(tmpCode.size() > 0) {
+      char ch = tmpCode.front();
+      switch(ch) {
+      case '(':
+        printIndent(Out);
+        Out << "(\n";
+        printIndent(Out);
+        IndentLevel += 2;
+        break;
+      case ')':
+        printIndent(Out);
+        Out << ")\n";
+        printIndent(Out);
+        IndentLevel -= 2;
+        break;
+      default:
+        Out << ch;
+        break;
+      }
+      tmpCode = tmpCode.substr(1);
+    }
+
+    if(bClose) {
+      Out << "/* ";
+      Out << comment;
+      Out << " */\n";
+      printIndent(Out);
+    }
+  }
+  else {
+    Out << code;
+  }
+}
 
 // isFPCSafeToPrint - Returns true if we may assume that CFP may be written out
 // textually as a double (rather than as a reference to a stack-allocated

@@ -1,6 +1,7 @@
-# Vim
-*.swp
 
+# Vim
 # output directory
+*.swp
 /bin
 /cov
+/memo.txt

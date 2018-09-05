@@ -1295,19 +1295,18 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
       LastIndexIsVector = dyn_cast<VectorType>(TmpI.getIndexedType());
   }
 
-  Out << "(";
+  printPrettyPrint(Out,"(","(1)");
 
   // If the last index is into a vector, we can't print it as &a[i][j] because
   // we can't index into a vector with j in GCC.  Instead, emit this as
   // (((float*)&a[i])+j)
   // TODO: this is no longer true now that we don't represent vectors using gcc-extentions
   if (LastIndexIsVector) {
-    Out << "((";
+    printPrettyPrint(Out,"((","(2)");
     printTypeName(Out, PointerType::getUnqual(LastIndexIsVector->getElementType()));
-    Out << ")(";
+    printPrettyPrint(Out,")","(3)");
+    printPrettyPrint(Out,"(","(4)");
   }
-
-  Out << '&';
 
   // If the first index is 0 (very typical) we can do a number of
   // simplifications to clean up the code.
@@ -1317,12 +1316,13 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
     writeOperand(Ptr);
   } else {
     ++I;  // Skip the zero index.
+    printPrettyPrint(Out,"&","(amp)");
 
     // Okay, emit the first operand. If Ptr is something that is already address
     // exposed, like a global, avoid emitting (&foo)[0], just emit foo instead.
     if (isAddressExposed(Ptr)) {
       writeOperandInternal(Ptr);
-    } else if (I != E && I.getIndexedType()->isStructTy()) {
+    } else if (I != E && I.isStruct()) {
       // If we didn't already emit the first operand, see if we can print it as
       // P->f instead of "P[0].f"
       writeOperand(Ptr);
@@ -1353,15 +1353,16 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
       // works with the 'LastIndexIsVector' code above.
       if (isa<Constant>(I.getOperand()) &&
           cast<Constant>(I.getOperand())->isNullValue()) {
-        Out << "))";  // avoid "+0".
+        printPrettyPrint(Out,"))","isNullValue");  // avoid "+0".
       } else {
-        Out << ")+(";
+        printPrettyPrint(Out,")","(5)");
+        Out << "+";
+        printPrettyPrint(Out,"(","(6)");
         writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
-        Out << "))";
       }
     }
   }
-  Out << ")";
+  printPrettyPrint(Out,")","(7)");
 }
 
 void CWriter::writeMemoryAccess(Value *Operand, Type *OperandType,
