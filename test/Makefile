@@ -15,7 +15,7 @@ LLVMToolDir ?= .
 
 PYTHON = python
 CC = gcc
-CPPFLAGS = -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-incompatible-library-redeclaration -Werror
+CPPFLAGS = -Wall -Wno-unused-function -Wno-parentheses-equality -Wno-unused-variable -Wno-incompatible-library-redeclaration -Wno-unused-but-set-variable -Wno-main
 FILES := $(patsubst %.c,%,$(filter-out %.cbe.c,$(wildcard *.c)))
 
 all: cexec buildcbe
