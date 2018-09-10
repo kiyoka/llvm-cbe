@@ -1,0 +1,73 @@
+#!/usr/bin/python3
+import sys
+import argparse
+import os
+
+class ClangWrapper:
+    verbose = True
+
+    def parse(this,argv):
+        this.objfile = ''
+        newargv1 = []
+        newargv2 = []
+        i = 0
+        o_index = -2
+        for s in argv:
+            if '-o' == s:
+                o_index = i
+            elif i == (o_index+1):
+                this.objfile = s # xxxx.o filename
+            else:
+                newargv1.append(s)
+            i = i + 1
+        for s in newargv1:
+            path, ext = os.path.splitext(s)
+            if '.cpp' == ext or '.c' == ext or '.c++' == ext:
+                this.cfile = s    # c source filename
+                this.cbase = path # c source filename
+                this.ctmp  = '/tmp/' + os.path.basename(s)
+            else:
+                newargv2.append(s)
+        this.argv_without_objfile  = newargv1
+        this.argv_without_bothfile = newargv2
+
+    def debugPrint(this):
+        print('cfile     :{}'.format(this.cfile))
+        print('cbase     :{}'.format(this.cbase))
+        print('ctmp      :{}'.format(this.ctmp))
+        print('objfile   :{}'.format(this.objfile))
+        print('newargv1  :{}'.format(this.argv_without_objfile))
+        print('newargv2  :{}'.format(this.argv_without_bothfile))
+
+    def emitll(this):
+        cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.cbase, 
+                                                ' '.join(this.argv_without_objfile))
+        if this.verbose:
+            print('cmd       :{}'.format(cmd))
+        os.system(cmd)
+
+    def compilell(this):
+        cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.cbase,this.ctmp)
+        cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_bothfile),
+                                        this.ctmp,
+                                        this.objfile)
+        if this.verbose:
+            print('cmd1      :{}'.format(cmd1))
+        os.system(cmd1)
+        if this.verbose:
+            print('cmd2      :{}'.format(cmd2))
+        os.system(cmd2)
+            
+def main(argv):
+    if 1 > len(argv):
+        print('usage: clang-cbe [options] [xxx.cpp]')
+    else:
+        clang = ClangWrapper()
+        argv.pop(0)
+        clang.parse(argv)
+        clang.debugPrint()
+        clang.emitll()
+        clang.compilell()
+
+if __name__ == '__main__':
+    main(sys.argv)
