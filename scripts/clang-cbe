@@ -9,7 +9,8 @@ class ClangWrapper:
     cfile = ''
     cbase = ''
     ctmp = ''
-    minusc = False
+    ctmpbase = ''
+    mode = None
 
     def parse(this,argv):
         newargv1 = []
@@ -23,54 +24,67 @@ class ClangWrapper:
                 this.objfile = s # xxxx.o filename
             else:
                 newargv1.append(s)
-            if '-c':
-                this.minusc = True
+            if '-c' == s:
+                this.mode = 'c'
+            if '-E' == s:
+                this.mode = 'E'
             i = i + 1
         for s in newargv1:
             path, ext = os.path.splitext(s)
             if '.cpp' == ext or '.c' == ext or '.c++' == ext:
                 this.cfile = s    # c source filename
                 this.cbase = path # c source filename
-                this.ctmp  = '/tmp/' + os.path.basename(s)
+                this.ctmp     = '/tmp/' + os.path.basename(s)
+                this.ctmpbase = '/tmp/' + os.path.basename(path)
             else:
                 newargv2.append(s)
+        if this.cfile != '':
+            this.objfile = this.cbase + '.o'
         this.argv_without_objfile  = newargv1
         this.argv_without_bothfile = newargv2
 
     def debugPrint(this):
-        print('cfile     :{}'.format(this.cfile))
-        print('cbase     :{}'.format(this.cbase))
-        print('ctmp      :{}'.format(this.ctmp))
-        print('objfile   :{}'.format(this.objfile))
-        print('newargv1  :{}'.format(this.argv_without_objfile))
-        print('newargv2  :{}'.format(this.argv_without_bothfile))
+        if this.verbose:
+            print('mode      :{}'.format(this.mode))
+            print('cfile     :{}'.format(this.cfile))
+            print('cbase     :{}'.format(this.cbase))
+            print('ctmp      :{}'.format(this.ctmp))
+            print('ctmpbase  :{}'.format(this.ctmpbase))
+            print('objfile   :{}'.format(this.objfile))
+            print('newargv1  :{}'.format(this.argv_without_objfile))
+            print('newargv2  :{}'.format(this.argv_without_bothfile))
 
     def emitLL(this):
-        cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.cbase, 
+        cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.ctmpbase, 
                                                 ' '.join(this.argv_without_objfile))
         if this.verbose:
             print('cmd       :{}'.format(cmd))
-        os.system(cmd)
+        return os.system(cmd)
 
     def compileLL(this):
-        cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.cbase,this.ctmp)
+        cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.ctmpbase,this.ctmp)
         cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_bothfile),
                                         this.ctmp,
                                         this.objfile)
         if this.verbose:
             print('cmd1      :{}'.format(cmd1))
-        os.system(cmd1)
+        ret = os.system(cmd1)
+        if 0 != ret:
+            return ret
         if this.verbose:
             print('cmd2      :{}'.format(cmd2))
-        os.system(cmd2)
+        return os.system(cmd2)
 
     def compile(this,argv):
-        if this.cfile == '' or (not this.minusc):
+        if this.mode == 'E' or this.mode == None:
             cmd = 'gcc {}'.format(' '.join(argv))
-            os.system(cmd)
+            return os.system(cmd)
         else:
-            this.emitLL()
-            this.compileLL()
+            ret = this.emitLL()
+            if 0 != ret:
+                return ret
+            ret = this.compileLL()
+            return ret
             
 def main(argv):
     if 1 > len(argv):
@@ -80,7 +94,7 @@ def main(argv):
         argv.pop(0)
         clang.parse(argv)
         clang.debugPrint()
-        clang.compile(argv)
+        return clang.compile(argv)
 
 if __name__ == '__main__':
-    main(sys.argv)
+    sys.exit(main(sys.argv))
