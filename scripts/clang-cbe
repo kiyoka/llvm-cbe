@@ -5,9 +5,13 @@ import os
 
 class ClangWrapper:
     verbose = True
+    objfile = ''
+    cfile = ''
+    cbase = ''
+    ctmp = ''
+    minusc = False
 
     def parse(this,argv):
-        this.objfile = ''
         newargv1 = []
         newargv2 = []
         i = 0
@@ -19,6 +23,8 @@ class ClangWrapper:
                 this.objfile = s # xxxx.o filename
             else:
                 newargv1.append(s)
+            if '-c':
+                this.minusc = True
             i = i + 1
         for s in newargv1:
             path, ext = os.path.splitext(s)
@@ -39,14 +45,14 @@ class ClangWrapper:
         print('newargv1  :{}'.format(this.argv_without_objfile))
         print('newargv2  :{}'.format(this.argv_without_bothfile))
 
-    def emitll(this):
+    def emitLL(this):
         cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.cbase, 
                                                 ' '.join(this.argv_without_objfile))
         if this.verbose:
             print('cmd       :{}'.format(cmd))
         os.system(cmd)
 
-    def compilell(this):
+    def compileLL(this):
         cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.cbase,this.ctmp)
         cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_bothfile),
                                         this.ctmp,
@@ -57,6 +63,14 @@ class ClangWrapper:
         if this.verbose:
             print('cmd2      :{}'.format(cmd2))
         os.system(cmd2)
+
+    def compile(this,argv):
+        if this.cfile == '' or (not this.minusc):
+            cmd = 'gcc {}'.format(' '.join(argv))
+            os.system(cmd)
+        else:
+            this.emitLL()
+            this.compileLL()
             
 def main(argv):
     if 1 > len(argv):
@@ -66,8 +80,7 @@ def main(argv):
         argv.pop(0)
         clang.parse(argv)
         clang.debugPrint()
-        clang.emitll()
-        clang.compilell()
+        clang.compile(argv)
 
 if __name__ == '__main__':
     main(sys.argv)
