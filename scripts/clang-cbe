@@ -15,6 +15,7 @@ class ClangWrapper:
     def parse(this,argv):
         newargv1 = []
         newargv2 = []
+        this.argv_without_Iopt = []
         i = 0
         o_index = -2
         for s in argv:
@@ -30,6 +31,9 @@ class ClangWrapper:
                 this.mode = 'E'
             i = i + 1
         for s in newargv1:
+            optstr = ''
+            if 2 <= len(s):
+                optstr = s[:2]
             path, ext = os.path.splitext(s)
             if '.cpp' == ext or '.c' == ext or '.c++' == ext:
                 this.cfile = s    # c source filename
@@ -38,6 +42,8 @@ class ClangWrapper:
                 this.ctmpbase = '/tmp/' + os.path.basename(path)
             else:
                 newargv2.append(s)
+                if '-I' != optstr:
+                    this.argv_without_Iopt.append(s)
         if this.cfile != '':
             this.objfile = this.cbase + '.o'
         this.argv_without_objfile  = newargv1
@@ -53,6 +59,7 @@ class ClangWrapper:
             print('objfile   :{}'.format(this.objfile))
             print('newargv1  :{}'.format(this.argv_without_objfile))
             print('newargv2  :{}'.format(this.argv_without_bothfile))
+            print('arg wo opt:{}'.format(this.argv_without_Iopt))
 
     def emitLL(this):
         cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.ctmpbase, 
@@ -63,7 +70,7 @@ class ClangWrapper:
 
     def compileLL(this):
         cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.ctmpbase,this.ctmp)
-        cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_bothfile),
+        cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_Iopt),
                                         this.ctmp,
                                         this.objfile)
         if this.verbose:
