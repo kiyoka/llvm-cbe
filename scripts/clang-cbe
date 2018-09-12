@@ -61,16 +61,23 @@ class ClangWrapper:
             print('newargv2  :{}'.format(this.argv_without_bothfile))
             print('arg wo opt:{}'.format(this.argv_without_Iopt))
 
+    def join_argv(this,argv):
+        newargv = []
+        for s in argv:
+            s = s.replace('"', "\\\"")
+            newargv.append(s)
+        return ' '.join(newargv)
+
     def emitLL(this):
         cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.ctmpbase, 
-                                                ' '.join(this.argv_without_objfile))
+                                                           this.join_argv(this.argv_without_objfile))
         if this.verbose:
             print('cmd       :{}'.format(cmd))
         return os.system(cmd)
 
     def compileLL(this):
         cmd1 = 'llvm-cbe {}.ll -o {}'.format(this.ctmpbase,this.ctmp)
-        cmd2 = 'gcc {} {} -o {}'.format(' '.join(this.argv_without_Iopt),
+        cmd2 = 'gcc {} {} -o {}'.format(this.join_argv(this.argv_without_Iopt),
                                         this.ctmp,
                                         this.objfile)
         if this.verbose:
@@ -84,7 +91,7 @@ class ClangWrapper:
 
     def compile(this,argv):
         if this.mode == 'E' or this.mode == None:
-            cmd = 'gcc {}'.format(' '.join(argv))
+            cmd = 'gcc {}'.format(this.join_argv(argv))
             return os.system(cmd)
         else:
             ret = this.emitLL()
