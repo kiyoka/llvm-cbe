@@ -32,6 +32,8 @@ function main
   runTest execute_c_test  helloworld2.cpp
   runTest execute_c_test  argv.cpp
   runTest execute_c_test  argv.cpp  arg1
+  runTest execute_c_test  funcptr1.cpp
+  runTest execute_c_test  funcptr2.cpp
 }
 
 function runTest
