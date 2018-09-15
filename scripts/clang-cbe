@@ -46,7 +46,7 @@ class ClangWrapper:
                 newargv2.append(s)
                 if '-I' != optstr:
                     this.argv_without_Iopt.append(s)
-        if this.cfile != '':
+        if this.cfile != '' and o_index < 0:
             this.objfile = this.cbase + '.o'
         this.argv_without_objfile  = newargv1
         this.argv_without_bothfile = newargv2
@@ -107,6 +107,8 @@ class ClangWrapper:
     def compile(this,argv):
         if this.mode == 'E' or this.mode == None:
             cmd = 'gcc {}'.format(this.join_argv(argv))
+            if this.verbose:
+                print('cmd       :{}'.format(cmd))
             return os.system(cmd)
         else:
             ret = this.emitLL()
