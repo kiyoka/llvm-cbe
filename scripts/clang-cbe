@@ -5,6 +5,8 @@ import os
 
 class ClangWrapper:
     verbose = True
+    disableOptimize = True
+    
     objfile = ''
     cfile = ''
     cbase = ''
@@ -48,6 +50,19 @@ class ClangWrapper:
             this.objfile = this.cbase + '.o'
         this.argv_without_objfile  = newargv1
         this.argv_without_bothfile = newargv2
+
+    def modifyOptions(this,argv):
+        newargv = []
+        for s in argv:
+            if this.disableOptimize:
+                if '-O1' == s:
+                    s = '-O0'
+                if '-O2' == s:
+                    s = '-O0'
+                if '-O3' == s:
+                    s = '-O0'
+            newargv.append(s)
+        return newargv
 
     def debugPrint(this):
         if this.verbose:
@@ -106,6 +121,7 @@ def main(argv):
     else:
         clang = ClangWrapper()
         argv.pop(0)
+        argv = clang.modifyOptions(argv)
         clang.parse(argv)
         clang.debugPrint()
         return clang.compile(argv)
