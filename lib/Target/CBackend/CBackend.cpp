@@ -389,6 +389,14 @@ raw_ostream &CWriter::printTypeNameUnaligned(raw_ostream &Out, Type *Ty, bool is
     TypedefDeclTypes.insert(VTy);
     return Out << getVectorName(VTy, false);
   }
+  else if (PointerType *VTy = dyn_cast<PointerType>(Ty)) {
+    // function pointer
+    for (auto I = VTy->subtype_begin(); I != VTy->subtype_end(); ++I) {
+      if ((*I)->isFunctionTy()) {
+        TypedefDeclTypes.insert(*I);
+      }
+    }
+  }
   return printTypeName(Out, Ty, isSigned);
 }
 
@@ -1932,6 +1940,14 @@ void CWriter::generateHeader(Module &M) {
       continue;
     printTypeName(NullOut, I->getType()->getElementType(), false);
   }
+  // collect function pointer types in function prototype
+  for (auto it = M.begin(), E = M.end(); it != E; ++it) {
+    auto I = &*it;
+    if(Function *F = dyn_cast<Function>(I)) {
+      printFunctionProto(NullOut, F);
+    }
+  }
+
   printModuleTypes(Out);
 
   // Global variable declarations...
