@@ -2,9 +2,10 @@
 import sys
 import argparse
 import os
+import re
 
 class ClangWrapper:
-    verbose = True
+    verbose = False
     disableOptimize = True
     
     objfile = ''
@@ -21,6 +22,7 @@ class ClangWrapper:
         i = 0
         o_index = -2
         for s in argv:
+            pattern = re.compile('^-print-prog-name.+')
             if '-o' == s:
                 o_index = i
             elif i == (o_index+1):
@@ -31,6 +33,8 @@ class ClangWrapper:
                 this.mode = 'c'
             if '-E' == s:
                 this.mode = 'E'
+            if pattern.match(s):
+                this.mode = 'PPN'
             i = i + 1
         for s in newargv1:
             optstr = ''
@@ -105,7 +109,7 @@ class ClangWrapper:
         return os.system(cmd2)
 
     def compile(this,argv):
-        if this.mode == 'E' or this.mode == None:
+        if this.mode == 'E' or this.mode == None or this.mode == 'PPN':
             cmd = 'gcc {}'.format(this.join_argv(argv))
             if this.verbose:
                 print('cmd       :{}'.format(cmd))
