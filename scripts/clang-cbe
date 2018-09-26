@@ -14,6 +14,7 @@ class ClangWrapper:
     ctmp = ''
     ctmpbase = ''
     mode = None
+    messages = []
 
     def parse(this,argv):
         newargv1 = []
@@ -68,17 +69,18 @@ class ClangWrapper:
             newargv.append(s)
         return newargv
 
-    def debugPrint(this):
-        if this.verbose:
-            print('mode      :{}'.format(this.mode))
-            print('cfile     :{}'.format(this.cfile))
-            print('cbase     :{}'.format(this.cbase))
-            print('ctmp      :{}'.format(this.ctmp))
-            print('ctmpbase  :{}'.format(this.ctmpbase))
-            print('objfile   :{}'.format(this.objfile))
-            print('newargv1  :{}'.format(this.argv_without_objfile))
-            print('newargv2  :{}'.format(this.argv_without_bothfile))
-            print('arg wo opt:{}'.format(this.argv_without_Iopt))
+    def printMessages(this):
+        print('mode      :{}'.format(this.mode))
+        print('cfile     :{}'.format(this.cfile))
+        print('cbase     :{}'.format(this.cbase))
+        print('ctmp      :{}'.format(this.ctmp))
+        print('ctmpbase  :{}'.format(this.ctmpbase))
+        print('objfile   :{}'.format(this.objfile))
+        print('newargv1  :{}'.format(this.argv_without_objfile))
+        print('newargv2  :{}'.format(this.argv_without_bothfile))
+        print('arg wo opt:{}'.format(this.argv_without_Iopt))
+        for mes in this.messages:
+            print(mes)
 
     def join_argv(this,argv):
         newargv = []
@@ -90,8 +92,7 @@ class ClangWrapper:
     def emitLL(this):
         cmd = 'clang-4.0 -S -emit-llvm -o {}.ll {}'.format(this.ctmpbase, 
                                                            this.join_argv(this.argv_without_objfile))
-        if this.verbose:
-            print('cmd       :{}'.format(cmd))
+        this.messages.append('cmd       :{}'.format(cmd))
         return os.system(cmd)
 
     def compileLL(this):
@@ -99,20 +100,17 @@ class ClangWrapper:
         cmd2 = 'gcc {} {} -o {}'.format(this.join_argv(this.argv_without_Iopt),
                                         this.ctmp,
                                         this.objfile)
-        if this.verbose:
-            print('cmd1      :{}'.format(cmd1))
+        this.messages.append('cmd1      :{}'.format(cmd1))
         ret = os.system(cmd1)
         if 0 != ret:
             return ret
-        if this.verbose:
-            print('cmd2      :{}'.format(cmd2))
+        this.messages.append('cmd2      :{}'.format(cmd2))
         return os.system(cmd2)
 
     def compile(this,argv):
         if this.mode == 'E' or this.mode == None or this.mode == 'PPN':
             cmd = 'gcc {}'.format(this.join_argv(argv))
-            if this.verbose:
-                print('cmd       :{}'.format(cmd))
+            this.messages.append('cmd       :{}'.format(cmd))
             return os.system(cmd)
         else:
             ret = this.emitLL()
@@ -129,8 +127,10 @@ def main(argv):
         argv.pop(0)
         argv = clang.modifyOptions(argv)
         clang.parse(argv)
-        clang.debugPrint()
-        return clang.compile(argv)
+        ret = clang.compile(argv)
+        if 0 != ret:
+            clang.printMessages()
+        return ret
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
